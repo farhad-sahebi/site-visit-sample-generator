@@ -1,0 +1,138 @@
+---
+title: "HER Patient Sampling Report"
+author: "Mohammad Farhad Sahebi"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    theme: flatly
+  pdf_document:
+    toc: true
+    toc_depth: '2'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE
+)
+library(readxl)
+library(dplyr)
+library(kableExtra)
+library(ggplot2)
+library(skimr)
+```
+
+# 1. Introduction
+
+This report provides an overview and basic analysis of the HER patient sampling dataset.
+
+# 2. Importing the data
+
+```{r load-data}
+setwd("C:/Users/Dell/Downloads/Patient Sample Script")
+
+samples <- read_excel("HER pat sampling23_11_25.xlsx")
+
+head(samples) %>%
+  kable() %>%
+  kable_styling(full_width = FALSE)
+```
+
+# 3. Data Structure and Summary
+
+```{r structure}
+str(samples)
+skimr::skim(samples)
+```
+
+# 4. Key Variables
+
+```{r key-vars}
+samples %>%
+  select(Province, `Health Facility Name`, Site_Visit_ID) %>%
+  head(20) %>%
+  kable() %>%
+  kable_styling(full_width = FALSE)
+```
+
+# 5. Summary by Province
+
+```{r province-summary}
+prov_summary <- samples %>%
+  group_by(Province) %>%
+  summarise(n = n())
+
+prov_summary %>%
+  kable(col.names = c("Province", "Number of Samples")) %>%
+  kable_styling(full_width = FALSE)
+```
+
+```{r province-plot}
+ggplot(prov_summary, aes(x = reorder(Province, n), y = n)) +
+  geom_col(fill = "#2E86C1", width = 0.7) +
+  geom_text(aes(label = n), vjust = -0.4, size = 4.2, fontface = "bold") +
+  labs(
+    title = "📊 Samples Collected by Province",
+    subtitle = "HER Patient Sampling — Facility-level distribution",
+    x = "Province",
+    y = "Number of Samples",
+    caption = "Prepared by Mohammad Farhad Sahebi — Data Analyst"
+  ) +
+  theme_minimal(base_family = "Calibri") +
+  theme(
+    plot.title = element_text(size = 18, face = "bold", color = "#1A5276"),
+    plot.subtitle = element_text(size = 13, face = "plain", color = "#424949"),
+    axis.text.x = element_text(size = 12, angle = 25, hjust = 1, face = "bold"),
+    axis.text.y = element_text(size = 12),
+    axis.title = element_text(size = 13, face = "bold"),
+    panel.grid.major.y = element_line(color = "#D5D8DC"),
+    panel.grid.minor = element_blank(),
+    plot.caption = element_text(size = 10, color = "gray40", face = "italic")
+  )
+
+```
+
+# 6. Summary by Health Facility
+
+```{r hf-summary}
+hf_summary <- samples %>%
+  group_by(`Health Facility Name`) %>%
+  summarise(n = n()) %>%
+  arrange(desc(n))
+
+hf_summary %>%
+  head(20) %>%
+  kable(col.names = c("Health Facility", "Number of Samples")) %>%
+  kable_styling(full_width = FALSE)
+```
+
+# 7. Sample Site View
+
+```{r one-site}
+one_site <- samples %>%
+  filter(Site_Visit_ID == samples$Site_Visit_ID[1])
+
+one_site %>%
+  kable() %>%
+  kable_styling(full_width = FALSE)
+```
+
+# 8. Conclusion
+
+This report:
+
+- Loaded the dataset  
+- Explored structure and variables  
+- Displayed summary statistics  
+- Generated visualizations  
+- Demonstrated site-level detail  
+
+Further development can include:
+
+- rejection rate analysis  
+- interviewer performance  
+- geographic mapping  
+- facility-wise sample quality scoring  
